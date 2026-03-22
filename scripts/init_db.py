@@ -1,41 +1,127 @@
 #!/usr/bin/env python
-"""Initialize database tables for the Publisher RAG Demo."""
+"""Initialize database tables for the Publisher RAG Demo - standalone version."""
 
+import sqlite3
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Setup paths
+PROJECT_ROOT = Path(__file__).parent.parent
+DATA_DIR = PROJECT_ROOT / "data"
+DATABASE_PATH = DATA_DIR / "articles.db"
 
-# Import and run each table init directly
-from src.core.database import DATABASE_PATH, get_connection
-from src.modules.advertisements.database import init_table as ads_init
-from src.modules.analytics.database import init_table as analytics_init
-from src.modules.articles.database import init_table as articles_init
-from src.modules.conversations.database import init_table as conv_init
-from src.modules.events.database import init_table as events_init
+# Ensure data directory exists
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def main() -> None:
     """Initialize all database tables."""
     print(f"Initializing database tables at {DATABASE_PATH}...")
-    try:
-        ads_init()
-        print("✓ advertisements table initialized")
-        articles_init()
-        print("✓ articles table initialized")
-        events_init()
-        print("✓ events table initialized")
-        conv_init()
-        print("✓ conversations table initialized")
-        analytics_init()
-        print("✓ analytics table initialized")
-        print("✓ All database tables initialized successfully")
-    except Exception as e:
-        import traceback
-        print(f"✗ Failed to initialize database: {e}")
-        traceback.print_exc()
-        sys.exit(1)
+    
+    conn = sqlite3.connect(str(DATABASE_PATH))
+    cursor = conn.cursor()
+    
+    # Create advertisements table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS advertisements (
+            ad_id TEXT PRIMARY KEY,
+            product_name TEXT NOT NULL,
+            advertiser TEXT NOT NULL,
+            description TEXT,
+            category TEXT,
+            price REAL,
+            original_price REAL,
+            discount_percent REAL,
+            valid_from TEXT,
+            valid_to TEXT,
+            url TEXT,
+            raw_text TEXT,
+            publisher TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    print("✓ advertisements table initialized")
+    
+    # Create articles table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS articles (
+            article_id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            body TEXT,
+            summary TEXT,
+            author TEXT,
+            publish_date TEXT,
+            category TEXT,
+            location TEXT,
+            source_file TEXT,
+            publisher TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    print("✓ articles table initialized")
+    
+    # Create events table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS events (
+            event_id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            description TEXT,
+            location TEXT,
+            address TEXT,
+            event_date TEXT,
+            event_time TEXT,
+            end_date TEXT,
+            end_time TEXT,
+            category TEXT,
+            price REAL,
+            organizer TEXT,
+            url TEXT,
+            publisher TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    print("✓ events table initialized")
+    
+    # Create conversations table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS conversations (
+            conversation_id TEXT PRIMARY KEY,
+            user_id TEXT,
+            publisher TEXT,
+            started_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            ended_at TEXT,
+            message_count INTEGER DEFAULT 0
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS conversation_messages (
+            message_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            conversation_id TEXT,
+            role TEXT,
+            content TEXT,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+            metadata TEXT,
+            FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id)
+        )
+    """)
+    print("✓ conversations table initialized")
+    
+    # Create analytics table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS analytics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type TEXT,
+            user_query TEXT,
+            response_text TEXT,
+            sources_used TEXT,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    print("✓ analytics table initialized")
+    
+    conn.commit()
+    conn.close()
+    print("✓ All database tables initialized successfully")
 
 
 if __name__ == "__main__":
