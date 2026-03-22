@@ -383,6 +383,11 @@ def create_app() -> FastAPI:
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory="static"), name="static")
 
+    @app.get("/health")
+    def health_check():
+        """Health check endpoint for Railway."""
+        return {"status": "ok"}
+
     @app.get("/mock-content")
     def mock_content(
         type: str,
