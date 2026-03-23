@@ -535,9 +535,9 @@ def create_app() -> FastAPI:
         # Redirect to the actual URL
         return RedirectResponse(url=target_url, status_code=302)
 
-    # Create and mount Gradio app
+    # Create and mount Gradio app at /chat
     demo = create_chatbot()
-    app = gr.mount_gradio_app(app, demo, path="/")
+    app = gr.mount_gradio_app(app, demo, path="/chat")
 
     return app
 
