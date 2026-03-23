@@ -551,26 +551,15 @@ def main() -> None:
     """Launch the chatbot interface with FastAPI."""
     import os
 
-    # Get port from environment
-    port = int(os.environ.get("PORT", "7860"))
-    print(f"DEBUG: Starting Gradio on port {port}", flush=True)
+    # Get port from environment - Railway expects PORT
+    port = int(os.environ.get("PORT", "8080"))
+    print(f"Starting on port {port}", flush=True)
     
     app = create_app()
     
-    # Use Gradio's launch with explicit server config for Railway
-    import gradio as gr
-    app = app  # FastAPI app
-    
-    # Run with uvicorn directly for better Railway compatibility
+    # Run with uvicorn
     import uvicorn
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=port,
-        log_level="info",
-        proxy_headers=True,
-        forwarded_allow_ips="*",
-    )
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":
