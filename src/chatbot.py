@@ -429,6 +429,11 @@ def create_app() -> FastAPI:
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory="static"), name="static")
 
+    @app.get("/")
+    def root():
+        """Root endpoint - returns simple HTML to confirm app is running."""
+        return {"status": "ok", "message": "Publisher RAG Demo is running"}
+    
     @app.get("/health")
     def health_check():
         """Health check endpoint for Railway."""
@@ -544,21 +549,27 @@ def create_app() -> FastAPI:
 
 def main() -> None:
     """Launch the chatbot interface with FastAPI."""
-    import uvicorn
     import os
 
-    # Debug: print port-related env vars
-    print(f"DEBUG: PORT={os.environ.get('PORT')}, RAILWAY_PUBLIC_PORT={os.environ.get('RAILWAY_PUBLIC_PORT')}", flush=True)
+    # Get port from environment
+    port = int(os.environ.get("PORT", "7860"))
+    print(f"DEBUG: Starting Gradio on port {port}", flush=True)
     
     app = create_app()
-    # Try multiple port sources - Railway typically uses PORT or 8000
-    port = int(os.environ.get("PORT") or os.environ.get("RAILWAY_PUBLIC_PORT") or os.environ.get("GRADIO_SERVER_PORT", "7860"))
-    print(f"DEBUG: Starting on port {port}", flush=True)
+    
+    # Use Gradio's launch with explicit server config for Railway
+    import gradio as gr
+    app = app  # FastAPI app
+    
+    # Run with uvicorn directly for better Railway compatibility
+    import uvicorn
     uvicorn.run(
         app,
         host="0.0.0.0",
         port=port,
         log_level="info",
+        proxy_headers=True,
+        forwarded_allow_ips="*",
     )
 
 
