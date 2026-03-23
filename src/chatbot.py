@@ -551,8 +551,8 @@ def main() -> None:
     print(f"DEBUG: PORT={os.environ.get('PORT')}, RAILWAY_PUBLIC_PORT={os.environ.get('RAILWAY_PUBLIC_PORT')}", flush=True)
     
     app = create_app()
-    # Railway sets PORT, but also need to handle default
-    port = int(os.environ.get("PORT", os.environ.get("RAILWAY_PUBLIC_PORT", "7860")))
+    # Try multiple port sources - Railway typically uses PORT or 8000
+    port = int(os.environ.get("PORT") or os.environ.get("RAILWAY_PUBLIC_PORT") or os.environ.get("GRADIO_SERVER_PORT", "7860"))
     print(f"DEBUG: Starting on port {port}", flush=True)
     uvicorn.run(
         app,
