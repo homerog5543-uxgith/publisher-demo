@@ -364,7 +364,7 @@ def create_chatbot() -> gr.Blocks:
                     clear_btn = gr.Button("Clear Chat", variant="secondary")
                     submit_btn = gr.Button("Send", variant="primary")
                     
-                submit_btn.click respond, [msg, chatbot], [msg, chatbot]
+                submit_btn.click(respond, [msg, chatbot], [msg, chatbot])
                 msg.submit(respond, [msg, chatbot], [msg, chatbot])
                 clear_btn.click(lambda: (None, [{"role": "assistant", "content": "👋 Hi! I'm your Pipestone assistant. What would you like to know?"}]), None, [chatbot])
 
