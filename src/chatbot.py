@@ -124,6 +124,12 @@ def create_chatbot() -> gr.Blocks:
         logger.error(f"Failed to initialize query engine: {e}")
         raise
 
+    def respond(message: str, history: list) -> tuple[str, list]:
+        """Non-streaming response wrapper."""
+        for response in respond_streaming(message, history):
+            pass
+        return "", response[1] if response else ("", history)
+
     def respond_streaming(
         message: str, history: list
     ) -> Iterator[tuple[str, list]]:
@@ -284,63 +290,103 @@ def create_chatbot() -> gr.Blocks:
 
         return articles_md, ads_md
 
-    # Create Gradio interface
-    with gr.Blocks(title="Publisher News Assistant") as demo:
-        gr.Markdown(
-            """
-            # Publisher News Assistant
-
-            Ask questions about our articles and news content.
-            The assistant will search through indexed documents and provide
-            answers with source citations.
-
-            *Note: Conversations are logged for analysis and service improvement.*
-            """
-        )
-
+    # Option B Layout - Chat-First Design
+    custom_css = """
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    .header { background: #1a365d; color: white; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+    .logo-icon { background: #c53030; padding: 6px 12px; border-radius: 4px; }
+    .network-tag { background: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; opacity: 0.9; }
+    .hero-chat { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 24px; text-align: center; color: white; margin: -20px -20px 20px -20px; }
+    .hero-chat h1 { font-size: 28px; margin-bottom: 8px; }
+    .hero-chat p { opacity: 0.9; margin-bottom: 24px; }
+    .chat-box { max-width: 700px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); overflow: hidden; }
+    .footer-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 20px; }
+    .footer-card { background: #f7fafc; border-radius: 12px; padding: 16px; text-align: center; }
+    .footer-card h4 { font-size: 14px; margin-bottom: 8px; color: #1a365d; }
+    .footer-card p { font-size: 12px; color: #718096; }
+    .quick-links h3, .top-stories h3, .local-sections h3 { font-size: 15px; margin-bottom: 14px; color: #1a365d; }
+    .section-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f7fafc; border-radius: 8px; font-size: 13px; margin-bottom: 8px; }
+    .section-count { background: #c53030; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+    """
+    
+    with gr.Blocks(title="Pipestone Star - Grand Network", css=custom_css) as demo:
+        # Header
+        gr.HTML("""
+        <header style="background: #1a365d; color: white; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px;">
+                <span style="background: #c53030; padding: 6px 12px; border-radius: 4px;">📰</span>
+                Pipestone Star
+                <span style="background: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; opacity: 0.9;">🌐 Grand Network</span>
+            </div>
+            <div style="display: flex; gap: 16px; font-size: 14px;">
+                <a href="#" style="color: white; text-decoration: none;">Nearby Papers</a>
+                <a href="#" style="color: white; text-decoration: none;">Business Directory</a>
+                <a href="#" style="color: white; text-decoration: none;">Events</a>
+            </div>
+        </header>
+        """)
+        
+        # Hero Chat Section
+        gr.HTML("""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 24px; text-align: center; color: white;">
+            <h1 style="font-size: 28px; margin-bottom: 8px;">🤖 Your Local AI Assistant</h1>
+            <p style="opacity: 0.9; margin-bottom: 24px;">Ask me anything about Pipestone County — news, events, businesses, jobs, weather...</p>
+        </div>
+        """)
+        
+        # Chat area
         with gr.Row():
-            # LEFT: Sidebar
-            with gr.Column(scale=2):
-                gr.Markdown("### 📰 Recent Articles")
-                articles_display = gr.Markdown()
-
-                gr.Markdown("---")
-
-                gr.Markdown("### 🛍️ Featured Deals")
-                ads_display = gr.Markdown()
-
-            # RIGHT: Chat area
             with gr.Column(scale=6):
+                gr.Markdown("### 💬 Chat with Your Local Assistant")
                 # Try to use 'messages' type if supported, otherwise fall back to no initial message
                 try:
                     chatbot = gr.Chatbot(
-                        label="Chat",
-                        height=500,
+                        height=400,
                         type="messages",
-                        sanitize_html=False,  # Allow HTML links with target="_blank"
+                        sanitize_html=False,
                         value=[
                             {
                                 "role": "assistant",
-                                "content": "Welcome! I can help you with:\n\n"
-                                "📰 **News Articles** - Ask about recent news, topics, or specific articles\n"
-                                "🛍️ **Shopping Deals** - Find products on sale and current promotions\n"
-                                "📅 **Local Events** - Discover upcoming events and activities\n\n"
-                                "Try asking: *\"What's happening in technology?\"* or *\"Any deals on electronics?\"*",
+                                "content": "👋 Hi! I'm your Pipestone assistant. What would you like to know about our community?",
                             }
                         ],
                     )
                 except TypeError:
-                    # Older version of Gradio doesn't support type='messages'
-                    chatbot = gr.Chatbot(
-                        label="Chat",
-                        height=500,
-                    )
+                    chatbot = gr.Chatbot(height=400)
 
                 msg = gr.Textbox(
-                    label="Your Question",
-                    placeholder="Ask a question about the articles...",
+                    label="Ask a question",
+                    placeholder="Type your question here... (e.g., 'Any events this weekend?')",
                     lines=2,
                 )
+                with gr.Row():
+                    clear_btn = gr.Button("Clear Chat", variant="secondary")
+                    submit_btn = gr.Button("Send", variant="primary")
+                    
+                submit_btn.click respond, [msg, chatbot], [msg, chatbot]
+                msg.submit(respond, [msg, chatbot], [msg, chatbot])
+                clear_btn.click(lambda: (None, [{"role": "assistant", "content": "👋 Hi! I'm your Pipestone assistant. What would you like to know?"}]), None, [chatbot])
+
+            # Sidebar
+            with gr.Column(scale=2):
+                gr.Markdown("### 🔗 Quick Links")
+                gr.HTML("""
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="background: #f7fafc; padding: 12px; border-radius: 8px; text-align: center; font-size: 13px; cursor: pointer;">📰 News</div>
+                    <div style="background: #f7fafc; padding: 12px; border-radius: 8px; text-align: center; font-size: 13px; cursor: pointer;">🏠 Real Estate</div>
+                    <div style="background: #f7fafc; padding: 12px; border-radius: 8px; text-align: center; font-size: 13px; cursor: pointer;">💼 Jobs</div>
+                    <div style="background: #f7fafc; padding: 12px; border-radius: 8px; text-align: center; font-size: 13px; cursor: pointer;">🚗 Autos</div>
+                    <div style="background: #f7fafc; padding: 12px; border-radius: 8px; text-align: center; font-size: 13px; cursor: pointer;">📅 Events</div>
+                    <div style="background: #f7fafc; padding: 12px; border-radius: 8px; text-align: center; font-size: 13px; cursor: pointer;">🛍️ Shopping</div>
+                </div>
+                """)
+                
+                gr.Markdown("### 📰 Featured Stories")
+                articles_display = gr.Markdown()
+                
+                gr.Markdown("### 🛍️ Local Deals")
+                ads_display = gr.Markdown()
 
                 with gr.Row():
                     submit_btn = gr.Button("Send", variant="primary")
