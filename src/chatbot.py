@@ -548,7 +548,9 @@ def main() -> None:
     import os
 
     app = create_app()
-    port = int(os.environ.get("PORT", 7860))
+    # Railway sets PORT, but also need to handle default
+    port = int(os.environ.get("PORT", os.environ.get("RAILWAY_PUBLIC_PORT", "7860")))
+    print(f"DEBUG: Starting on port {port}", flush=True)
     uvicorn.run(
         app,
         host="0.0.0.0",
