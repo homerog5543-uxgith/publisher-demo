@@ -310,28 +310,26 @@ def create_chatbot() -> gr.Blocks:
     .section-count { background: #c53030; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
     """
     
-    with gr.Blocks(title="Pipestone Star - Grand Network", css=custom_css) as demo:
-        # Header
+    # Use a theme and add header at the top
+    theme = gr.themes.Default(
+        primary_hue="blue",
+        secondary_hue="purple",
+    )
+    
+    with gr.Blocks(title="Pipestone Star - Grand Network", theme=theme, css=custom_css) as demo:
+        # Header using HTML
         gr.HTML("""
-        <header style="background: #1a365d; color: white; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="background: #1a365d; color: white; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; margin: -20px -20px 20px -20px;">
             <div style="font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px;">
                 <span style="background: #c53030; padding: 6px 12px; border-radius: 4px;">📰</span>
                 Pipestone Star
                 <span style="background: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; opacity: 0.9;">🌐 Grand Network</span>
             </div>
             <div style="display: flex; gap: 16px; font-size: 14px;">
-                <a href="#" style="color: white; text-decoration: none;">Nearby Papers</a>
-                <a href="#" style="color: white; text-decoration: none;">Business Directory</a>
-                <a href="#" style="color: white; text-decoration: none;">Events</a>
+                <span>Nearby Papers</span>
+                <span>Business Directory</span>
+                <span>Events</span>
             </div>
-        </header>
-        """)
-        
-        # Hero Chat Section
-        gr.HTML("""
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 24px; text-align: center; color: white;">
-            <h1 style="font-size: 28px; margin-bottom: 8px;">🤖 Your Local AI Assistant</h1>
-            <p style="opacity: 0.9; margin-bottom: 24px;">Ask me anything about Pipestone County — news, events, businesses, jobs, weather...</p>
         </div>
         """)
         
